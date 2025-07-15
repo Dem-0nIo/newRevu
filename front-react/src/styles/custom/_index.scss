@@ -27,4 +27,9 @@
   margin-bottom: 1rem;
 }
 
+.datepicker-custom-width {
+  min-width: 220px !important; /* Ajusta el valor hasta que se vea bien */
+  max-width: 100%;
+}
+
 

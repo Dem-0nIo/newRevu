@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 // import api from "../../../utils/api"; 
 import PageWrapper from '../../../layout/PageWrapper/PageWrapper';
 import Page from '../../../layout/Page/Page';
@@ -10,6 +11,18 @@ import SearchByCityCountryWidget from '../../_common/CRMDashboard/SearchByCityCo
 
 
 const DashboardPage = () => {
+	const user = useSelector((state: any) => state.auth?.user);
+	// FORZAR usuario admin PARA DEBUG (esto es solo para pruebas rápidas)
+	// const user = { roles: [{ name: 'admin' }] };
+	console.log('USER DEBUG:', user);
+	
+	const hasAdminRole = user?.roles?.includes('ROLE_ADMIN');
+	console.log('ROLES DEBUG:', user?.roles);
+
+	if (!hasAdminRole) {
+		return <div className="text-center mt-5">Acceso restringido: solo para administradores.</div>;
+	}
+
 	return (
 		<PageWrapper title='Dashboadrd'>
 			<SubHeader>

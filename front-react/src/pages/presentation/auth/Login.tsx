@@ -5,17 +5,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { useFormik } from 'formik';
+import { useDispatch } from 'react-redux';
 import PageWrapper from '../../../layout/PageWrapper/PageWrapper';
 import Page from '../../../layout/Page/Page';
 import Card, { CardBody } from '../../../components/bootstrap/Card';
 import FormGroup from '../../../components/bootstrap/forms/FormGroup';
 import Input from '../../../components/bootstrap/forms/Input';
 import Button from '../../../components/bootstrap/Button';
-// import Logo from '../../../components/Logo';
+
 import User1Img from '../../../assets/img/wanna/logo_login.png';
 import useDarkMode from '../../../hooks/useDarkMode';
 import AuthContext from '../../../contexts/authContext';
-// import USERS from '../../../common/data/userData';
+import { setUser as setUserRedux } from '../../../features/auth/authSlice';
 import Spinner from '../../../components/bootstrap/Spinner';
 // import Alert from '../../../components/bootstrap/Alert';
 import AuthService from '../../../services/auth.service';
@@ -51,7 +52,7 @@ const Login: FC<ILoginProps> = ({ isSignUp }) => {
 	const { setUser } = useContext(AuthContext);
 
 	const { darkModeStatus } = useDarkMode();
-
+	const dispatch = useDispatch();
 	const [signInPassword, setSignInPassword] = useState<boolean>(false);
 	const [singUpStatus, ] = useState<boolean>(!!isSignUp);
 
@@ -81,21 +82,28 @@ const Login: FC<ILoginProps> = ({ isSignUp }) => {
 		onSubmit: (values) => {
 			if (setUser) {
 				AuthService.login(formik.values.loginUsername, formik.values.loginPassword).then(
-					() => {
-						if (setUser) {
+					(response) => {
+							console.log('LOGIN RESPONSE:', response);
+							// Aquí recibes la respuesta completa del usuario, por ejemplo:
+							// { user: { id, username, roles: [...] } }
+							if (response) {
+								dispatch(setUserRedux(response));
+								localStorage.setItem('user', JSON.stringify(response));
+							}
+							if (setUser) {
 							setUser(values.loginUsername);
-						}
-						handleOnClick();
-					},
-					(error) => {
-						const resMessage =
+							}
+							handleOnClick();
+						},
+						(error) => {
+							const resMessage =
 							(error.response &&
 								error.response.data &&
 								error.response.data.message) ||
 							error.message ||
 							error.toString();
-						formik.setFieldError('loginPassword', resMessage);
-					},
+							formik.setFieldError('loginPassword', resMessage);
+						},
 				);
 			}
 		},
@@ -132,40 +140,7 @@ const Login: FC<ILoginProps> = ({ isSignUp }) => {
 										<img src={User1Img} />
 									</Link>
 								</div>
-								{/* 								<div
-									className={classNames('rounded-3', {
-										'bg-l10-dark': !darkModeStatus,
-										'bg-dark': darkModeStatus,
-									})}>
-									<div className='row row-cols-2 g-3 pb-3 px-3 mt-0'>
-										<div className='col'>
-											<Button
-												color={darkModeStatus ? 'light' : 'dark'}
-												isLight={singUpStatus}
-												className='rounded-1 w-100'
-												size='lg'
-												onClick={() => {
-													setSignInPassword(false);
-													setSingUpStatus(!singUpStatus);
-												}}>
-												Login
-											</Button>
-										</div>
-										<div className='col'>
-											<Button
-												color={darkModeStatus ? 'light' : 'dark'}
-												isLight={!singUpStatus}
-												className='rounded-1 w-100'
-												size='lg'
-												onClick={() => {
-													setSignInPassword(false);
-													setSingUpStatus(!singUpStatus);
-												}}>
-												Regsitro
-											</Button>
-										</div>
-									</div>
-								</div> */}
+								
 
 								<LoginHeader isNewUser={singUpStatus} />
 								<form className='row g-4'>

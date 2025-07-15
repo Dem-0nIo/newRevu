@@ -417,6 +417,17 @@ const NewInfluencer = () => {
 	const handleSubmit = async (values: any) => {
 		try {
 
+			const storedUser = localStorage.getItem('user');
+			let userId = null;
+			if (storedUser) {
+				try {
+					// Este bloque maneja que el valor pueda ser string o el objeto directo
+					const userObj = typeof storedUser === "string" ? JSON.parse(storedUser) : storedUser;
+					userId = userObj.id || userObj.idUser; // Ajusta según tu modelo, revisa qué propiedad tiene el id
+				} catch (e) {
+					console.error("Error parsing stored user:", e);
+				}
+			}
 			const selectedNetworks = [];
 
 			if (values.socialInstagram) selectedNetworks.push("socialInstagram");
@@ -476,6 +487,7 @@ const NewInfluencer = () => {
 				costo_10: values.costo_10.replace('$', ''),
 				costo_11: values.costo_11.replace('$', ''),
 				costo_12: values.costo_12.replace('$', ''),
+				createdBy: userId,
 				subcategories: selectedSubcategories.map((subcat) => subcat.id), // Add selected subcategories IDs
 			};
 		

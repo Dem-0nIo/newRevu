@@ -299,7 +299,6 @@ const NewInfluencer = () => {
 	// const [, setSuccessful] = useState(false);
 	const [genders, setGenders] = useState<Gender[]>([]);
 	const [cities, setCities] = useState<City[]>([]);
-	const [citiesCopy, setCitiesCopy] = useState<City[]>([]);
 	const [countries, setCountry] = useState<Country[]>([]);
 	const [influencerClasses, setInfluencerClasses] = useState<InfluencerClass[]>([]);
 	const [hairColor, setHairColor] = useState<HairColor[]>([]);
@@ -397,7 +396,6 @@ const NewInfluencer = () => {
 				}));
 				console.log("Ciudades Colombia:", formattedCities); 
 				setCities(formattedCities);
-				setCitiesCopy(formattedCities);
 			} else {
 				response = await InfluService.getCities();
 				// Opcional: filtra aquí solo las del país si no lo hace el backend
@@ -405,18 +403,27 @@ const NewInfluencer = () => {
 				const filtered = response.data.filter((city: City) => city.country_id === selectedCountryId);
 				console.log("Ciudades filtradas:", filtered); 
 				setCities(filtered);
-				setCitiesCopy(filtered);
 			}
 		} catch (error) {
 			console.error("Failed to fetch cities for country: ", error);
 			setCities([]);
-			setCitiesCopy([]);
 		}
 	};
 
 	const handleSubmit = async (values: any) => {
 		try {
 
+			const storedUser = localStorage.getItem('user');
+			let userId = null;
+			if (storedUser) {
+				try {
+					// Este bloque maneja que el valor pueda ser string o el objeto directo
+					const userObj = typeof storedUser === "string" ? JSON.parse(storedUser) : storedUser;
+					userId = userObj.id || userObj.idUser; // Ajusta según tu modelo, revisa qué propiedad tiene el id
+				} catch (e) {
+					console.error("Error parsing stored user:", e);
+				}
+			}
 			const selectedNetworks = [];
 
 			if (values.socialInstagram) selectedNetworks.push("socialInstagram");
@@ -476,6 +483,7 @@ const NewInfluencer = () => {
 				costo_10: values.costo_10.replace('$', ''),
 				costo_11: values.costo_11.replace('$', ''),
 				costo_12: values.costo_12.replace('$', ''),
+				createdBy: userId,
 				subcategories: selectedSubcategories.map((subcat) => subcat.id), // Add selected subcategories IDs
 			};
 		
@@ -525,21 +533,6 @@ const NewInfluencer = () => {
 		}
 		fetchGenders();
 	}, []);
-
-	// Fetch cities from the API
-	/* useEffect(() => {
-		async function fetchCities() {
-			try {
-				const response = await InfluService.getCities();
-				console.log("Ciudades cargadas: ", response.data); 
-				setCities(response.data);
-				setCitiesCopy(response.data);
-			} catch (error) {
-				console.error("Failed to fetch Cities:", error);
-			}
-		}
-		fetchCities();
-	}, []); */
 
 	// Fetch influencer classes
 	useEffect(() => {

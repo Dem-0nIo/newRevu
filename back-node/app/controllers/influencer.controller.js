@@ -73,6 +73,10 @@ exports.registerinfluencer = async (req, res) => {
       costo_10,
       costo_11,
       costo_12,
+<<<<<<< HEAD
+=======
+      createdBy,
+>>>>>>> development
       subcategories,// Subcategories array from request
     } = req.body;
 
@@ -143,7 +147,11 @@ exports.registerinfluencer = async (req, res) => {
       await db.sequelize.query(
         'INSERT INTO influencer_creations (influencer_id, user_id) VALUES (?, ?)',
         {
+<<<<<<< HEAD
           replacements: [newInfluencer.idUser, idUser],
+=======
+          replacements: [newInfluencer.idUser, createdBy],
+>>>>>>> development
           type: db.Sequelize.QueryTypes.INSERT
         }
       );
@@ -584,9 +592,15 @@ exports.getFilteredInfluencers = async (req, res) => {
         costo_10: influencer.costo_10,
         costo_11: influencer.costo_11,
         categories: influencer.influencerSubcategories.map(sub => ({
+<<<<<<< HEAD
           category: sub.subcategory?.category?.category_name || "N/A",
           subcategory: sub.subcategory?.subcategory_name || "N/A",
           subcategory_id: sub.subcategory?.id || "N/A"
+=======
+          category: sub.subcategories?.category?.category_name || "N/A",
+          subcategory: sub.subcategories?.subcategory_name || "N/A",
+          subcategory_id: sub.subcategories?.id || "N/A"
+>>>>>>> development
         }))
       };
     });

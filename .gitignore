@@ -1,8 +1,12 @@
 .env
-docker-compose-yml
+docker-compose.yml
 front-react/Dockerfile
+front-react/Dockerfile.*
 front-react/.env
+front-react/*.env
+front-react/*.env.*
 front-react/nginx.conf
+front-react/nginx*.conf
 back-node/server.js
 back-node/.env
 back-node/Dockerfile

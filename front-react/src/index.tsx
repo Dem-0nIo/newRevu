@@ -2,6 +2,10 @@ import React from 'react';
 // import ReactDOM from 'react-dom'; // For React 17
 import { createRoot } from 'react-dom/client'; // For React 18
 import { BrowserRouter as Router } from 'react-router-dom';
+import { Provider } from 'react-redux';
+
+import store from './store'; // <-- AHORA después de los externos
+
 import './styles/styles.scss';
 import App from './App/App';
 import reportWebVitals from './reportWebVitals';
@@ -11,13 +15,15 @@ import { AuthContextProvider } from './contexts/authContext';
 import './i18n';
 
 const children = (
-	<AuthContextProvider>
-		<ThemeContextProvider>
-			<Router>
-				<App />
-			</Router>
-		</ThemeContextProvider>
-	</AuthContextProvider>
+	<Provider store={store}>
+		<AuthContextProvider>
+			<ThemeContextProvider>
+				<Router>
+					<App />
+				</Router>
+			</ThemeContextProvider>
+		</AuthContextProvider>
+	</Provider>
 );
 
 const container = document.getElementById('root');

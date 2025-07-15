@@ -124,21 +124,40 @@ export const TableBody = ({
 		};
 
 	const handleCountryChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-		const countryId = Number(e.target.value);
-		console.log("Nuevo país seleccionado:", countryId);
-		setSelectedCountryId(countryId);
-		const allCities = citiesCopy;
-		const filtered = allCities.filter(city => city.country_id === countryId);
-		console.log("Cities to display ",filtered);
-		setCities(filtered);
+	  const countryId = Number(e.target.value);
+	  console.log("Nuevo país seleccionado:", countryId);
+	  setSelectedCountryId(countryId);
+	  // Reset city selection (si tienes setCity, si no, puedes omitirlo)
+	  // setCity(""); 
 
-		// Actualizar el estado de edición con el nuevo país y resetear la ciudad
- 		setDataToEdit((prev) => ({
-			...prev!,
-			country_id: countryId,
-			city_id: 0, // Resetear la ciudad
-		}));
+	  if (countryId === 5) {
+	    // Colombia: usar el servicio especial
+	    try {
+	      const response = await InfluService.getCitiesWithDepartmentsForColombia();
+	      const formattedCities = response.data.map((cityItem: any) => ({
+	        id: cityItem.id,
+	        city_name: cityItem.name,
+	        country_id: countryId,
+	      }));
+	      setCities(formattedCities);
+	      setCitiesCopy(formattedCities);
+	    } catch (error) {
+	      setCities([]);
+	      setCitiesCopy([]);
+	    }
+	  } else {
+	    // Otros países: filtra del array local
+	    const allCities = citiesCopy;
+	    const filtered = allCities.filter(city => city.country_id === countryId);
+	    setCities(filtered);
+	  }
 
+	  // Actualizar el estado de edición con el nuevo país y resetear la ciudad
+	  setDataToEdit((prev) => ({
+	    ...prev!,
+	    country_id: countryId,
+	    city_id: 0, // Resetear la ciudad
+	  }));
 	};
 
 	async function editInfluencer(values: any) {

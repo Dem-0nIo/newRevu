@@ -29,7 +29,8 @@ exports.getCitiesWithDepartmentsForColombia = async(req, res) => {
             attributes: ['id', 'department_name']
           }
         ],
-        attributes: ['id', 'city_name']
+        attributes: ['id', 'city_name'],
+        order: [[sortBy, order.toUpperCase()]]
       });
 
       const result = cities.map(city => ({

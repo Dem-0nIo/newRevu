@@ -18,8 +18,6 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
   });
 
-<<<<<<< HEAD
-=======
   InfluencerSubcategories.associate = (models) => {
     InfluencerSubcategories.belongsTo(models.SubCategory, {
       foreignKey: 'subcategoryId',
@@ -27,7 +25,6 @@ module.exports = (sequelize, DataTypes) => {
     });
   };
 
->>>>>>> development
   return InfluencerSubcategories;
 };
 

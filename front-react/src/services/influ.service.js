@@ -14,6 +14,8 @@ const HAIR_TYPE_URL = `${process.env.REACT_APP_URL_API || 'http://127.0.0.1:8081
 const HAIR_COLOR_URL = `${process.env.REACT_APP_URL_API || 'http://127.0.0.1:8081'}/api/hair_color`; // Add hair type API endpoint
 const SKIN_COLOR_URL = `${process.env.REACT_APP_URL_API || 'http://127.0.0.1:8081'}/api/skin_color`; // Add hair type API endpoint
 const COUNTRY_API_URL = `${process.env.REACT_APP_URL_API || 'http://127.0.0.1:8081'}/api/countries`; // Add country API endpoint
+const UNIQUE_FIELDS_API_URL = `${process.env.REACT_APP_URL_API || 'http://127.0.0.1:8081'}/api/influencer/unique-fields`; // Add country API endpoint
+
 
 const getAll = () => {
 	return axios.get(`${INFLUENCER_URL}all`, { headers: authHeader() });
@@ -101,6 +103,10 @@ const getCitiesWithDepartmentsForColombia = () => {
 	return axios.get(`${COLCITIES_API_URL}`, { headers: authHeader() });
 }
 
+const getInfluencerUniqueFields = () => {
+	return axios.get(`${UNIQUE_FIELDS_API_URL}`, { headers: authHeader() });
+}
+
 const InfluService = {
 	getAll,
 	addInfluencer,
@@ -121,7 +127,8 @@ const InfluService = {
 	getSocialClasses,
 	searchInfluencers,
 	getAllInfluencersWithCategories,
-	getCitiesWithDepartmentsForColombia, // Export the new method
+	getCitiesWithDepartmentsForColombia,
+	getInfluencerUniqueFields,
 };
 
 export default InfluService;

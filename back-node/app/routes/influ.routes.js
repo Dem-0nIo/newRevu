@@ -45,4 +45,6 @@ module.exports = function (app) {
   app.post("/api/influencer/register", controller.registerinfluencer);
 
   app.post("/images/post", fileUpload, controller.registerinflu);
+
+  app.get("/api/influencer/unique-fields", controller.getInfluencerUniqueFields);
 };

@@ -1,6 +1,6 @@
 /* eslint-disable eslint-comments/disable-enable-pair */
 /* eslint-disable no-console */
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useState, useEffect, useRef } from 'react';
 import {useFormik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from "react-toastify";
@@ -310,6 +310,9 @@ const NewInfluencer = () => {
 	const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 	const [socialClasses, setSocialClasses] = useState<SocialClass[]>([]);
 
+	// Estado para almacenar la lista de influencers existentes
+	const [existingInfluencers, setExistingInfluencers] = useState<any[]>([]);
+
 	const TABS = {
 		ACCOUNT_DETAIL: 'Detalles Influencer',
 		TEST: 'Test',
@@ -411,8 +414,22 @@ const NewInfluencer = () => {
 	};
 
 	const handleSubmit = async (values: any) => {
-		try {
+		
+		console.log("existingInfluencers para validación:", existingInfluencers);
+		if (!values.socialInstagram || !values.socialTik || !values.emailAddress) {
+			toast.error("Todos los campos: Instagram, TikTok y Email son obligatorios.", { autoClose: 7000 });
+			return;
+		}
+		// Revisar duplicados en la lista de influencers existentes
+		const instagramExists = existingInfluencers.some(inf => inf.socialInstagram === values.socialInstagram);
+		const tikExists = existingInfluencers.some(inf => inf.socialTik === values.socialTik);
+		const emailExists = existingInfluencers.some(inf => inf.emailAddress === values.emailAddress);
+		if (instagramExists || tikExists || emailExists) {
+			toast.error("Ya existe un influencer con este Instagram, TikTok o Email.", { autoClose: 7000 });
+			return;
+		}
 
+		try {
 			const storedUser = localStorage.getItem('user');
 			let userId = null;
 			if (storedUser) {
@@ -632,6 +649,20 @@ const NewInfluencer = () => {
 		}
 		fetchSubcategories();
 	}, [selectedCategoryId]);
+
+	// Al montar el componente, obtener la lista de influencers existentes
+	useEffect(() => {
+		async function fetchExistingInfluencers() {
+			try {
+				const response = await InfluService.getInfluencerUniqueFields();
+				setExistingInfluencers(response.data);
+			} catch (error) {
+				console.error("Error al obtener influencers existentes:", error);
+				setExistingInfluencers([]);
+			}
+		}
+		fetchExistingInfluencers();
+	}, []);
 
 	const formik = useFormik({
         initialValues,
@@ -1550,5 +1581,7 @@ const NewInfluencer = () => {
 		</PageWrapper>
 	);
 };
+
+	
 
 export default NewInfluencer;

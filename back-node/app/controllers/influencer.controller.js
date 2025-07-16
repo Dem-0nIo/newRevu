@@ -317,26 +317,6 @@ exports.editInfluencer = async (req, res) => {
     res.status(500).json({ message: "Error updating influencer", error: error.message });
   }
 
-  /* Influ.update(updatedData, {
-    where: { idUser: idUser },
-  })
-  .then((num) => {
-    if (num == 1) {
-      res.send({
-        message: "Influencer was updated successfully.",
-      });
-    } else {
-      res.send({
-        message: `Cannot update Influencer with id=${id}. Maybe Influencer was not found or req.body is empty!`,
-      });
-    }
-  })
-  .catch((err) => {
-    res.status(500).send({
-      message: "Error updating Influencer with id=" + idUser,
-    });
-    console.error(err);
-  }); */
 };
 
 exports.deleteInfluencer = (req, res) => {
@@ -643,6 +623,18 @@ exports.getInfluencersByRecruiterAndDate = async (req, res) => {
     res.status(200).json(results);
   } catch (error) {
     console.error("❌ Error fetching influencer counts by recruiter:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.getInfluencerUniqueFields = async (req, res) => {
+  try {
+    const influencers = await Influ.findAll({
+      attributes: ['socialInstagram', 'socialTik', 'emailAddress']
+    });
+    res.status(200).json(influencers);
+  } catch (error) {
+    console.error("Error fetching unique influencer fields:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };

@@ -11,6 +11,7 @@ import Icon from '../../components/icon/Icon';
 import useNavigationItemHandle from '../../hooks/useNavigationItemHandle';
 import AuthContext from '../../contexts/authContext';
 import ThemeContext from '../../contexts/themeContext';
+import AuthService from '../../services/auth.service';
 // import Popovers from '../../components/bootstrap/Popovers';
 
 const User = () => {
@@ -98,6 +99,7 @@ const User = () => {
 							role='presentation'
 							className='navigation-item cursor-pointer'
 							onClick={() => {
+								AuthService.logout();
 								if (setUser) {
 									setUser('');
 								}

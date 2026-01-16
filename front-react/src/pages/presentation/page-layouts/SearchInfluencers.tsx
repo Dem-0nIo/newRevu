@@ -169,7 +169,7 @@ const SearchPage = () => {
   
         const socialColumn = socialColumnMap[prevFilters.socialNetwork];
   
-        // ✅ Asegurar que se borren las demás clasificaciones
+        // Asegurar que se borren las demás clasificaciones
         Object.values(socialColumnMap).forEach((column) => {
           updatedFilters[column] = "";
         });
@@ -186,10 +186,10 @@ const SearchPage = () => {
 
 
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const numericValue = e.target.value.replace(/\D/g, ""); // ✅ Solo números
-    const limitedValue = numericValue.slice(0, 3); // ✅ Máximo 3 dígitos
+    const numericValue = e.target.value.replace(/\D/g, ""); // Solo números
+    const limitedValue = numericValue.slice(0, 3); // Máximo 3 dígitos
     setFilters(prev => ({ ...prev, year: limitedValue }));
-    setYearError(null); // ✅ Limpia el error si el usuario corrige
+    setYearError(null); // Limpia el error si el usuario corrige
   };
 
 
@@ -199,7 +199,7 @@ const SearchPage = () => {
       const params = new URLSearchParams();
   
       Object.entries(filters).forEach(([key, value]) => {
-        if (value && value !== "0") {  // ✅ Evitamos agregar valores vacíos o "0"
+        if (value && value !== "0") {  // Evita agregar valores vacíos o "0"
           params.append(key, String(value));
         }
       });
@@ -208,7 +208,7 @@ const SearchPage = () => {
         params.append("search", searchQuery); // 🔍 Add search query to API request
       }
   
-      console.log("📌 Parámetros enviados: ", params.toString());
+      console.log("Parámetros enviados: ", params.toString());
   
       if ([...params].length === 0) {
         console.warn("⚠️ No hay filtros aplicados, evitando llamada inválida.");
@@ -217,39 +217,38 @@ const SearchPage = () => {
       }
 
       // **Validación antes de ejecutar la búsqueda**
-      if (filters.year && !/^\d{1,3}$/.test(filters.year)) { // ✅ Solo números, 1 a 3 dígitos
+      if (filters.year && !/^\d{1,3}$/.test(filters.year)) { // Solo números, 1 a 3 dígitos
         setYearError("⚠️ Ingrese una edad válida (solo números, máximo 3 dígitos).");
-        return; // ❌ No ejecuta la búsqueda si hay error
-      }
+        return; // No ejecuta la búsqueda si hay error
+      } 
 
       console.log("🔍 URL Final: ", `?${params.toString()}`);
       const response = await FiltersService.searchInfluencers({ params });
       setResults(response.data);
   
-      console.log("✅ Resultados encontrados:", response.data);
+      console.log("Resultados encontrados:", response.data);
     } catch (error) {
       showNotification("Error", "No se pudieron cargar los resultados", "danger");
-      console.error("❌ FRONT - Error al obtener influencers:", error);
+      console.error("FRONT - Error al obtener influencers:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [filters, searchQuery]); // ✅ Ahora `fetchResults` solo cambia si cambian los filtros
+  }, [filters, searchQuery]); // `fetchResults` solo cambia si cambian los filtros
 
   const fetchInitialResults = async () => {
     try {
         setIsLoading(true);
         const params = new URLSearchParams();
-        params.append("limit", "50"); // ✅ Default limit of 50 influencers
 
-        console.log("📌 Loading initial results: ", `?${params.toString()}`);
+        console.log("Loading initial results (sin limit): ", `?${params.toString()}`);
 
         const response = await FiltersService.searchInfluencers({ params });
         setResults(response.data);
 
         console.log("✅ Initial influencers loaded:", response.data);
     } catch (error) {
-        showNotification("Error", "Failed to load initial results", "danger");
-        console.error("❌ FRONT - Error loading initial influencers:", error);
+        showNotification("Error", "No se pudieron cargar los resultados iniciales", "danger");
+        console.error("FRONT - Error loading initial influencers:", error);
     } finally {
         setIsLoading(false);
     }
@@ -276,27 +275,23 @@ const SearchPage = () => {
       socialUTubeCla: "",
     });
   
-    // Si usas estados para `selectedCategoryId`, también lo reinicias
     setSelectedCategoryId(null);
     setSearchQuery("");
-    fetchInitialResults();
+    // fetchInitialResults();
+    setResults([]);
   };
 
   useEffect(() => {
    
   
-    fetchInitialResults(); // ✅ Llamar a la función solo una vez al cargar la página
+    fetchInitialResults(); // Llamar a la función solo una vez al cargar la página
   }, []);
 
   // Obtener filtros de API
   useEffect(() => {
     async function fetchFilters() {
       try {
-/*         const countriesResponse = await FiltersService.getCountries();
-        setCountry(countriesResponse.data);
 
-        const categoriesResponse = await FiltersService.getCategories();
-        setCategories(categoriesResponse.data); */
         const [countriesRes, categoriesRes, gendersRes, citiesRes, socialClassesRes, hairColorsRes, hairTypesRes, skinColorsRes] = await Promise.all([
           FiltersService.getCountries(),
           FiltersService.getCategories(),
@@ -570,7 +565,7 @@ const SearchPage = () => {
                   <Input
                     type='text'
                     placeholder='Edad'
-                    value={filters.year || ""} // ✅ Asegura que cuando no haya valor, sea un string vacío
+                    value={filters.year || ""} // Asegura que cuando no haya valor, sea un string vacío
                     autoComplete='off'
                     onChange={handleYearChange}
                   />

@@ -33,7 +33,9 @@ const login = async (username, password) => {
 };
 
 const logout = () => {
+	// Clear all auth-related storage
 	localStorage.removeItem('user');
+	localStorage.removeItem('token');
 };
 
 const getCurrentUser = () => {

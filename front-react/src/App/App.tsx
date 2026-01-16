@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useLayoutEffect, useRef } from 'react';
+
 import { ThemeProvider } from 'react-jss';
 import { ReactNotifications } from 'react-notifications-component';
 import { useFullscreen } from 'react-use';
@@ -6,6 +7,7 @@ import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { ToastContainer } from 'react-toastify';
+import InfluencerDashboard from "../components/InfluencerDashboard";
 import ThemeContext from '../contexts/themeContext';
 import Wrapper from '../layout/Wrapper/Wrapper';
 import Portal from '../layout/Portal/Portal';
@@ -72,7 +74,7 @@ const App = () => {
 
 	return (
 		<ThemeProvider theme={theme}>
-			<div
+			{/* <div
 				ref={ref}
 				className='app'
 				style={{
@@ -84,11 +86,16 @@ const App = () => {
 
 				<ProductosProvider>
 					<CarritoProvider>
-						{/* <NavBar /> */}
-						<Wrapper />
+						{/* <NavBar /> }
+						{/* <Wrapper />
 					</CarritoProvider>
 				</ProductosProvider>
-			</div>
+			</div> }*/
+			
+				<div className="App">
+				<InfluencerDashboard />
+				</div>
+			 }
 			<Portal id='portal-notification'>
 				<ReactNotifications />
 			</Portal>

@@ -416,9 +416,9 @@ exports.getAllInfluencersWithCategories = async (req, res) => {
         socialUTube: influencer.socialUTube,
         socialUTubeCla: influencer.socialUTubeCla,
         categories: influencer.influencerSubcategories.map(sub => ({
-          category: sub.subcategory?.category?.category_name || "N/A",
-          subcategory: sub.subcategory?.subcategory_name || "N/A",
-          subcategory_id: sub.subcategory?.id || "N/A"
+          category: sub.subcategories?.category?.category_name || "N/A",
+          subcategory: sub.subcategories?.subcategory_name || "N/A",
+          subcategory_id: sub.subcategories?.id || "N/A"
         }))
       };
     });
@@ -452,21 +452,26 @@ exports.getFilteredInfluencers = async (req, res) => {
       skin_color_id,
       celebrity,
       isUGC,
-      search
+      search,
+      limit,
+      offset,
+      page
     } = req.query;
 
-    let whereClause = {[Op.and]: [] };
+    let whereClause = { [Op.and]: [] };
 
-    // Agregar filtros con los nombres de columna correctos
-    if (category_id) whereClause[Op.and].push({ '$influencerSubcategories.subcategory.category.id$': category_id });
+    // Filtrar por categoría (TagsCategory.id) usando WHERE dentro del include (evita problemas de alias en SQL)
+    const categoryWhere = category_id ? { id: parseInt(category_id, 10) } : undefined;
+
+
     if (country_id) whereClause[Op.and].push({ country_id: parseInt(country_id, 10) });
-    if (socialInstagramCla) whereClause[Op.and].push({ socialInstagramCla});
-    if (socialFaceCla) whereClause[Op.and].push({ socialFaceCla});
-    if (socialTikCla) whereClause[Op.and].push({ socialTikCla});
-    if (socialUTubeCla) whereClause[Op.and].push({ socialUTubeCla});
+    if (socialInstagramCla) whereClause[Op.and].push({ socialInstagramCla });
+    if (socialFaceCla) whereClause[Op.and].push({ socialFaceCla });
+    if (socialTikCla) whereClause[Op.and].push({ socialTikCla });
+    if (socialUTubeCla) whereClause[Op.and].push({ socialUTubeCla });
     if (city_id) whereClause[Op.and].push({ city_id: parseInt(city_id, 10) });
     if (gender_id) whereClause[Op.and].push({ gender_id: parseInt(gender_id, 10) });
-    if (year) whereClause[Op.and].push({year});
+    if (year) whereClause[Op.and].push({ year });
     if (social_class_id) whereClause[Op.and].push({ social_class_id: parseInt(social_class_id, 10) });
     if (hair_type_id) whereClause[Op.and].push({ hair_type_id: parseInt(hair_type_id, 10) });
     if (hair_color_id) whereClause[Op.and].push({ hair_color_id: parseInt(hair_color_id, 10) });
@@ -475,9 +480,9 @@ exports.getFilteredInfluencers = async (req, res) => {
     if (isUGC !== undefined) whereClause[Op.and].push({ isUGC: parseInt(isUGC, 10) });
     if (search) {
       whereClause[Op.or] = [
-          { firstName: { [Op.like]: `%${search}%` } },  
-          { lastName: { [Op.like]: `%${search}%` } },
-          { displayName: { [Op.like]: `%${search}%` } }
+        { firstName: { [Op.like]: `%${search}%` } },
+        { lastName: { [Op.like]: `%${search}%` } },
+        { displayName: { [Op.like]: `%${search}%` } }
       ];
     }
 
@@ -485,33 +490,84 @@ exports.getFilteredInfluencers = async (req, res) => {
     console.dir(whereClause.socialNetwork, { depth: null }); // Mejor que JSON.stringify
     console.log("Clausula");
     console.dir(whereClause, { depth: null }); // Mejor que JSON.stringify
-    console.log("🧐 Filtros aplicados antes de ");
-    if (whereClause.length === 0 ) {
-      return res.status(400).json({ message: "Debe proporcionar al menos un filtro" });
+    console.log("🧐 Filtros aplicados antes de ejecutar la consulta");
+
+    const hasAndFilters = Array.isArray(whereClause[Op.and]) && whereClause[Op.and].length > 0;
+    const hasOrFilters = Array.isArray(whereClause[Op.or]) && whereClause[Op.or].length > 0;
+    const hasCategoryFilter = !!category_id;
+
+    // Si no hay filtros, devolvemos el listado inicial (paginado) en lugar de 400.
+    const isInitialListRequest = !hasAndFilters && !hasOrFilters && !hasCategoryFilter;
+
+    const hasPaginationParams = page !== undefined || limit !== undefined || offset !== undefined;
+
+    const PAGE_SIZE = 100;
+
+    // Default behavior:
+    // - No filters: initial list (paginado) si el cliente manda paginación, sino TODO (front paginación)
+    // - With filters: si no hay paginación, devolver TODO
+    let finalLimit;
+    let finalOffset;
+
+    if (isInitialListRequest) {
+      // listado inicial:
+      // - si el cliente manda paginación (page/limit/offset), aplicamos paginación server-side
+      // - si NO manda paginación, devolvemos TODO para que el front pagine en cliente (como antes)
+      if (hasPaginationParams) {
+        const parsedPage = Number.isNaN(parseInt(page, 10)) ? 1 : Math.max(1, parseInt(page, 10));
+        const requestedLimit = Number.isNaN(parseInt(limit, 10)) ? undefined : parseInt(limit, 10);
+        const requestedOffset = Number.isNaN(parseInt(offset, 10)) ? undefined : parseInt(offset, 10);
+
+        finalLimit = Math.min(requestedLimit ?? PAGE_SIZE, PAGE_SIZE);
+        const computedOffset = (parsedPage - 1) * PAGE_SIZE;
+        finalOffset = requestedOffset ?? computedOffset;
+      } else {
+        finalLimit = undefined;
+        finalOffset = undefined;
+      }
+    } else if (hasPaginationParams) {
+      // server-side pagination requested
+      const parsedPage = Number.isNaN(parseInt(page, 10)) ? 1 : Math.max(1, parseInt(page, 10));
+      const requestedLimit = Number.isNaN(parseInt(limit, 10)) ? undefined : parseInt(limit, 10);
+      const requestedOffset = Number.isNaN(parseInt(offset, 10)) ? undefined : parseInt(offset, 10);
+
+      finalLimit = Math.min(requestedLimit ?? PAGE_SIZE, PAGE_SIZE);
+      const computedOffset = (parsedPage - 1) * PAGE_SIZE;
+      finalOffset = requestedOffset ?? computedOffset;
+    } else {
+      // filters present, no pagination params -> return ALL rows
+      finalLimit = undefined;
+      finalOffset = undefined;
     }
 
     const influencers = await Influ.findAll({
-
       attributes: [
-        'idUser', 'displayName', 'firstName','lastName','year','contact','emailAddress','phoneNumber','celebrity','isUGC',
-        'socialInstagram', 'socialInstagramCla', 'socialInstagramSeg', 'socialTik', 'socialTikCla', 'socialTikSeg','socialFace', 
-        'socialFaceCla', 'socialFaceSeg','socialUTube', 'socialUTubeCla', 'socialUTubeSeg', 'state_id', 'city_id', 'country_id',
-        'gender_id', 'social_class_id', 'hair_type_id', 'hair_color_id', 'skin_color_id','costo_1', 'costo_2', 'costo_3', 'costo_4',
-        'costo_5','costo_6','costo_7','costo_8','costo_9','costo_10','costo_11', 'costo_12'
+        'idUser', 'displayName', 'firstName', 'lastName', 'year', 'contact', 'emailAddress', 'phoneNumber', 'celebrity', 'isUGC',
+        'socialInstagram', 'socialInstagramCla', 'socialInstagramSeg', 'socialTik', 'socialTikCla', 'socialTikSeg', 'socialFace',
+        'socialFaceCla', 'socialFaceSeg', 'socialUTube', 'socialUTubeCla', 'socialUTubeSeg', 'state_id', 'city_id', 'country_id',
+        'gender_id', 'social_class_id', 'hair_type_id', 'hair_color_id', 'skin_color_id', 'costo_1', 'costo_2', 'costo_3', 'costo_4',
+        'costo_5', 'costo_6', 'costo_7', 'costo_8', 'costo_9', 'costo_10', 'costo_11', 'costo_12'
       ],
       where: whereClause,
+      ...(finalLimit !== undefined ? { limit: finalLimit } : {}),
+      ...(finalOffset !== undefined ? { offset: finalOffset } : {}),
+      order: [['idUser', 'DESC']],
       include: [
         {
           model: InfluencerSubcategories,
           as: 'influencerSubcategories',
+          required: !!category_id,
           include: [
             {
               model: SubCategory,
               as: 'subcategories',
+              required: !!category_id,
               include: [
                 {
                   model: TagsCategory,
-                  as: 'category'
+                  as: 'category',
+                  required: !!category_id,
+                  ...(categoryWhere ? { where: categoryWhere } : {})
                 }
               ]
             }
@@ -523,7 +579,6 @@ exports.getFilteredInfluencers = async (req, res) => {
     // Formatear la respuesta para incluir categorías y subcategorías correctamente
     const formattedInfluencers = influencers.map(influencer => {
       return {
-
         idUser: influencer.idUser,
         displayName: influencer.displayName,
         firstName: influencer.firstName,
@@ -572,7 +627,6 @@ exports.getFilteredInfluencers = async (req, res) => {
       };
     });
 
-    //res.status(200).json(influencers);
     res.status(200).json(formattedInfluencers);
   } catch (error) {
     console.error("❌ Back - Error al obtener influencers:", error);

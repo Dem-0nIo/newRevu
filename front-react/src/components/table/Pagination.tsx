@@ -45,7 +45,7 @@ export const Pagination = ({
       return [
         1,
         "...",
-        ...pageNumbers.slice(startPage, endPage),
+        ...pageNumbers.slice(startPage - 1, endPage),
         "...",
         totalNumberOfPages,
       ];
@@ -55,27 +55,31 @@ export const Pagination = ({
   return (
     <div className="row justify-content-between">
       <div className="col-md-3 col-sm-12 text-start">
-        Pagina 1 de {totalNumberOfPages} de {totalNumberOfPages} entradas
+        Pagina {currentPage} de {totalNumberOfPages}
       </div>
       <div className="col-md-3 col-sm-12 text-end">
         <div className="pagination">
           <li className="page-item">
             <button
               className={"page-link " + (currentPage === 1 ? "disabled" : "")}
-              onClick={() => handlePageChange(1)}
+              onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >{`<`}</button>
           </li>
           {renderPageNumbers().map((pageNumber, index) => (
             <li key={index} className="page-item">
-              <button
-                className={`page-link ${
-                  currentPage === pageNumber ? "active" : ""
-                }`}
-                onClick={() => handlePageChange(Number(pageNumber))}
-              >
-                {pageNumber}
-              </button>
+              {pageNumber === "..." ? (
+                <button className="page-link disabled" disabled>
+                  {pageNumber}
+                </button>
+              ) : (
+                <button
+                  className={`page-link ${currentPage === pageNumber ? "active" : ""}`}
+                  onClick={() => handlePageChange(Number(pageNumber))}
+                >
+                  {pageNumber}
+                </button>
+              )}
             </li>
           ))}
           <li className="page-item">
@@ -84,7 +88,7 @@ export const Pagination = ({
                 "page-link " +
                 (currentPage === totalNumberOfPages ? "disabled" : "")
               }
-              onClick={() => handlePageChange(totalNumberOfPages)}
+              onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalNumberOfPages}
             >{`>`}</button>
           </li>
